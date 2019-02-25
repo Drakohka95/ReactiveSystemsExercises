@@ -12,8 +12,7 @@ object Async {
     * In case the given `Future` value failed, this method
     * should return a failed `Future` with the same error.
     */
-  def transformSuccess(eventuallyX: Future[Int]): Future[Boolean] =
-    ???
+  def transformSuccess(eventuallyX: Future[Int]): Future[Boolean] = eventuallyX transform(num => num % 2 == 0, ex => ex)
 
   /**
     * Transforms a failed asynchronous `Int` computation into a
@@ -22,8 +21,7 @@ object Async {
     * In case the given `Future` value was successful, this method
     * should return a successful `Future` with the same value.
     */
-  def recoverFailure(eventuallyX: Future[Int]): Future[Int] =
-    ???
+  def recoverFailure(eventuallyX: Future[Int]): Future[Int] = eventuallyX fallbackTo Future{-1}
 
   /**
     * Perform two asynchronous computation, one after the other. `makeAsyncComputation2`
@@ -37,8 +35,10 @@ object Async {
   def sequenceComputations[A, B](
     makeAsyncComputation1: () => Future[A],
     makeAsyncComputation2: () => Future[B]
-  ): Future[(A, B)] =
-    ???
+  ): Future[(A, B)] = for {
+    i <- makeAsyncComputation1()
+    j <- makeAsyncComputation2()
+  } yield (i,j)
 
   /**
     * Concurrently perform two asynchronous computations and pair their successful
@@ -49,8 +49,7 @@ object Async {
   def concurrentComputations[A, B](
     makeAsyncComputation1: () => Future[A],
     makeAsyncComputation2: () => Future[B]
-  ): Future[(A, B)] =
-    ???
+  ): Future[(A, B)] = makeAsyncComputation1() zip makeAsyncComputation2()
 
   /**
     * Attempt to perform an asynchronous computation.
@@ -58,7 +57,5 @@ object Async {
     * the asynchronous computation so that at most `maxAttempts`
     * are eventually performed.
     */
-  def insist[A](makeAsyncComputation: () => Future[A], maxAttempts: Int): Future[A] =
-    ???
-
+  def insist[A](makeAsyncComputation: () => Future[A], maxAttempts: Int): Future[A] = makeAsyncComputation()
 }
