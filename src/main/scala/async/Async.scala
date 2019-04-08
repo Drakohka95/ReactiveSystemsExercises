@@ -21,7 +21,9 @@ object Async {
     * In case the given `Future` value was successful, this method
     * should return a successful `Future` with the same value.
     */
-  def recoverFailure(eventuallyX: Future[Int]): Future[Int] = eventuallyX fallbackTo Future{-1}
+  def recoverFailure(eventuallyX: Future[Int]): Future[Int] = eventuallyX fallbackTo Future {
+    -1
+  }
 
   /**
     * Perform two asynchronous computation, one after the other. `makeAsyncComputation2`
@@ -33,12 +35,12 @@ object Async {
     * second asynchronous computations, paired together.
     */
   def sequenceComputations[A, B](
-    makeAsyncComputation1: () => Future[A],
-    makeAsyncComputation2: () => Future[B]
-  ): Future[(A, B)] = for {
+                                  makeAsyncComputation1: () => Future[A],
+                                  makeAsyncComputation2: () => Future[B]
+                                ): Future[(A, B)] = for {
     i <- makeAsyncComputation1()
     j <- makeAsyncComputation2()
-  } yield (i,j)
+  } yield (i, j)
 
   /**
     * Concurrently perform two asynchronous computations and pair their successful
@@ -47,9 +49,9 @@ object Async {
     * If one of them fails, this method should return the failure.
     */
   def concurrentComputations[A, B](
-    makeAsyncComputation1: () => Future[A],
-    makeAsyncComputation2: () => Future[B]
-  ): Future[(A, B)] = makeAsyncComputation1() zip makeAsyncComputation2()
+                                    makeAsyncComputation1: () => Future[A],
+                                    makeAsyncComputation2: () => Future[B]
+                                  ): Future[(A, B)] = makeAsyncComputation1() zip makeAsyncComputation2()
 
   /**
     * Attempt to perform an asynchronous computation.
@@ -57,5 +59,8 @@ object Async {
     * the asynchronous computation so that at most `maxAttempts`
     * are eventually performed.
     */
-  def insist[A](makeAsyncComputation: () => Future[A], maxAttempts: Int): Future[A] = makeAsyncComputation()
+  def insist[A](makeAsyncComputation: () => Future[A], maxAttempts: Int): Future[A] = if (maxAttempts > 1) {
+    makeAsyncComputation() recoverWith { case _ => insist(makeAsyncComputation, maxAttempts - 1) }
+  }
+  else makeAsyncComputation()
 }
